@@ -1,0 +1,57 @@
+<h1>Pomodoro History</h1>
+
+<%= link_to "Back to Dashboard", root_path %>
+
+<table>
+  <thead>
+    <tr>
+      <th>Task</th>
+      <th>Focus Duration</th>
+      <th>Break Duration</th>
+      <th>Status</th>
+      <th>Completed At</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @pomodoro_sessions.each do |session| %>
+      <tr>
+        <td><%= session.task_name %></td>
+        <td><%= session.focus_duration %> minutes</td>
+        <td><%= session.break_duration %> minutes</td>
+        <td><%= session.status %></td>
+        <td><%= session.completed_at&.strftime("%d-%m-%Y %H:%M") %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+
+<hr>
+<h2>Statistics</h2>
+
+<p>
+  Total Sessions:
+  <strong><%= @total_sessions %></strong>
+</p>
+
+<p>
+  Total Focus Time:
+  <strong><%= @total_focus_minutes %> minutes</strong>
+</p>
+
+<hr>
+
+<h2>Today's Statistics</h2>
+
+<p>
+  Sessions Today:
+  <strong><%= @today_sessions_count %></strong>
+</p>
+
+<p>
+  Focus Time Today:
+  <strong><%= @today_focus_minutes %> minutes</strong>
+</p>
+
+<hr>

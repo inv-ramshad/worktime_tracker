@@ -1,0 +1,12 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  work_date: 2026-11-03
+  signed_in_at: 2026-11-03 09:00:00
+  signed_off_at: 2026-11-03 18:00:00
+  status: signed_off
+
+two:
+  work_date: 2026-11-04
+  signed_in_at: 2026-11-04 09:00:00
+  status: working

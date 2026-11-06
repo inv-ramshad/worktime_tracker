@@ -1,0 +1,255 @@
+<div class="container">
+
+  <!-- Page Heading -->
+  <div class="mb-4">
+    <h1 class="display-5 fw-bold">WorkTime Tracker</h1>
+    <p class="text-muted">
+      Manage your daily attendance and focus sessions.
+    </p>
+  </div>
+
+  <div id="live-clock" class="clock-display text-center h6" >
+    Loading clock...
+  </div>
+
+
+
+  <!-- Attendance Section -->
+  <% attendance = Attendance.find_by(work_date: Date.current) %>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+
+      <h3 class="card-title mb-3">
+        <i class="bi bi-calendar-check"></i>
+        Daily Attendance
+      </h3>
+
+      <p class="mb-3">
+        Current Status:
+
+        <% if attendance.nil? %>
+          <span class="badge bg-secondary">Not signed in</span>
+        <% elsif attendance.status == "working" %>
+          <span class="badge bg-success">Working</span>
+        <% elsif attendance.status == "on_break" %>
+          <span class="badge bg-warning text-dark">On Break</span>
+        <% elsif attendance.status == "signed_off" %>
+          <span class="badge bg-danger">Signed Off</span>
+        <% end %>
+      </p>
+
+      <p class="mb-3">
+        Sigined in at:
+<% if  attendance %>
+        <% if  attendance.signed_in_at %>
+          <time data-local-time="<%= attendance.signed_in_at.iso8601 %>">
+            <strong>
+              <%= attendance.signed_in_at.strftime("%I:%M:%S %p") %>
+            </strong>
+          </time>
+          <%end%>
+        <% else %>
+          -
+        <% end %>
+
+      </p>
+
+      <% if attendance.nil? %>
+        <%= button_to "Sign In",
+            sign_in_attendances_path,
+            method: :post,
+            class: "btn btn-success" %>
+      <% elsif attendance.status == "working" %>
+        <div class="d-flex gap-2 flex-wrap">
+          <%= button_to "Take Break",
+              take_break_attendance_path(attendance),
+              method: :patch,
+              class: "btn btn-warning" %>
+          <%= button_to "Sign Off",
+              sign_off_attendance_path(attendance),
+              method: :patch,
+              data: {
+                turbo_confirm: "Are you sure you want to sign off? You can sign in again later today."
+              },
+              class: "btn btn-danger" %>
+          
+        </div>
+
+      <% elsif attendance.status == "on_break" %>
+        <%= button_to "Resume Work",
+            resume_work_attendance_path(attendance),
+            method: :patch,
+            class: "btn btn-primary" %>
+      <% elsif attendance.status == "signed_off" %>
+
+        <%= button_to "Sign In Again",
+            re_sign_in_attendance_path(attendance),
+            method: :patch,
+            class: "btn btn-success" %>
+
+      <% end %>
+
+      <div class="mt-3">
+        <%= link_to "View Attendance History",
+            attendances_path,
+            class: "btn btn-outline-secondary btn-sm" %>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Today's Work Summary -->
+
+    <% if attendance.present? %>
+
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <h3 class="card-title mb-4">Today's Work Summary</h3>
+
+          <div class="row text-center">
+
+            <div class="col-md-4 mb-3">
+              <p class="text-muted mb-1">Sign In Time</p>
+              <h4>
+                    <time data-local-time="<%= attendance.signed_in_at.iso8601 %>">
+                      <strong>
+                        <%= attendance.signed_in_at.strftime("%I:%M:%p") %>
+                      </strong>
+                    </time>
+              </h4>
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <p class="text-muted mb-1">Total Break Time</p>
+              <h4 class="text-warning">
+                <%= attendance.formatted_break_time %>
+              </h4>
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <% if attendance.status == "signed_off" %>
+                <p class="text-muted mb-1">Actual Sign Off</p>
+                <h4 class="text-success">
+                   <strong>
+                        <%= attendance.signed_off_at.strftime("%I:%M:%p") %>
+                      </strong>
+                </h4>
+              <% else %>
+                <p class="text-muted mb-1">Expected Sign Off</p>
+                <h4 class="text-primary">
+                  <%= attendance.expected_sign_off_at.strftime("%I:%M %p") %>
+                </h4>
+              <% end %>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+
+  <!-- Pomodoro Timer Section -->
+  <div class="card shadow-sm mb-4">
+
+    <div class="card-body text-center">
+
+      <h3 class="card-title mb-4">
+        Pomodoro Focus Timer
+      </h3>
+
+      <div
+        data-controller="pomodoro"
+        data-pomodoro-focus-duration-value="2"
+        data-pomodoro-break-duration-value="1">
+
+          <label class="form-label">What are you working on?</label>
+
+          <input
+            type="text"
+            class="form-control mx-auto mb-3"
+            style="max-width: 400px;"
+            placeholder="Enter your task name"
+            data-pomodoro-target="taskName">
+
+          <div class="row justify-content-center mb-4">
+            <div class="col-md-4">
+              <label class="form-label">Focus Duration</label>
+              <select
+                class="form-select"
+                data-pomodoro-target="focusSelect"
+                data-action="change->pomodoro#changeFocusDuration">
+
+                <% [1, 2, 3, 5, 7, 13, 15, 20, 30, 45].each do |minute| %>
+                  <option value="<%= minute %>" <%= "selected" if minute == 25 %>>
+                    <%= minute %> minutes
+                  </option>
+                <% end %>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Break Duration</label>
+
+              <select
+                class="form-select"
+                data-pomodoro-target="breakSelect"
+                data-action="change->pomodoro#changeBreakDuration">
+
+                <% [1, 2, 3, 5, 7, 13, 15, 20, 30, 45].each do |minute| %>
+                  <option value="<%= minute %>" <%= "selected" if minute == 5 %>>
+                    <%= minute %> minutes
+                  </option>
+                <% end %>
+              </select>
+            </div>
+
+          </div>
+
+  <h5 class="text-primary mb-3" data-pomodoro-target="sessionType">
+    Focus Session
+  </h5>
+
+  <h1 class="display-1 fw-bold mb-4" data-pomodoro-target="timer">
+    25:00
+  </h1>
+
+  <div class="d-flex justify-content-center gap-2 flex-wrap">
+    <button type="button" class="btn btn-success"
+      data-action="click->pomodoro#start">Start</button>
+
+    <button type="button" class="btn btn-warning"
+      data-action="click->pomodoro#pause">Pause</button>
+
+    <button type="button" class="btn btn-danger"
+      data-action="click->pomodoro#reset">Reset</button>
+  </div>
+
+</div>
+
+      <div class="mt-4">
+        <%= link_to "View Pomodoro History",
+            pomodoro_sessions_path,
+            class: "btn btn-outline-primary btn-sm" %>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+
+<script>
+  function updateClock() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString(); 
+    const clockElement = document.getElementById('live-clock');
+    if (clockElement) {
+      clockElement.textContent = timeString;
+    }
+  }
+
+  // Update immediately, then every second
+  updateClock();
+  setInterval(updateClock, 1000);
+</script>
