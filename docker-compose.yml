@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:17
+    container_name: worktime_tracker_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: worktime_user
+      POSTGRES_PASSWORD: worktime_password
+      POSTGRES_DB: worktime_tracker_development
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

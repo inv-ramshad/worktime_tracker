@@ -11,6 +11,9 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[8.1].define(version: 2026_11_03_043328) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
+
   create_table "attendances", force: :cascade do |t|
     t.date "work_date"
     t.datetime "signed_in_at"
